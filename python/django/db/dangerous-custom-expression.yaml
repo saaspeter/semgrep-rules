@@ -1,0 +1,40 @@
+rules:
+- id: dangerous-custom-expression
+  patterns:
+    - pattern-either:
+      - patterns:
+        - pattern-inside: |
+            class $CLASS(django.db.models.expressions.Func):
+              ...
+              template = "..."
+              ...
+        - pattern-either:
+            - pattern: |
+                def __init__(self, ...):
+                  ...
+                  super(...).__init__(..., $KEY=$VALUE, ...)
+            - pattern: |
+                def __init__(self, ...):
+                  ...
+                  super(...).__init__(..., **$EXTRA)
+      - patterns:
+        - pattern-inside: |
+            class $CLASS(django.db.models.Func):
+              ...
+              template = "..."
+              ...
+        - pattern-either:
+            - pattern: |
+                def __init__(self, ...):
+                  ...
+                  super(...).__init__(..., $KEY=$VALUE, ...)
+            - pattern: |
+                def __init__(self, ...):
+                  ...
+                  super(...).__init__(..., **$EXTRA)
+  message: |
+    Found custom expression using SQL template.  This could be vulnerable
+    to a SQL injection because keyword arguments are directly interpolated into the
+    redefined template string. Ensure that user data is never passed into '$CLASS(...)'.
+  severity: WARNING
+  languages: [python]
