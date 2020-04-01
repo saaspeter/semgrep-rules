@@ -6,6 +6,8 @@ rules:
         - pattern-inside: |
             class $CLASS(django.db.models.expressions.Func):
               ...
+              template = "...'
+              ...
         - pattern-either:
           - pattern: |
               def $FUNC(self, ...):
@@ -22,6 +24,8 @@ rules:
       - patterns:
         - pattern-inside: |
             class $CLASS(django.db.models.Func):
+              ...
+              template = "..."
               ...
         - pattern-either:
           - pattern: |
