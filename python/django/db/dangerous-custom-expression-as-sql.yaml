@@ -1,0 +1,44 @@
+rules:
+- id: dangerous-custom-expression-as-sql
+  patterns:
+    - pattern-either:
+      - patterns:
+        - pattern-inside: |
+            class $CLASS(django.db.models.expressions.Func):
+              ...
+        - pattern-either:
+          - pattern: |
+              def $FUNC(self, ...):
+                ...
+                super(...).as_sql(..., **$EXTRA)
+          - pattern: |
+              def $FUNC(self, ...):
+                ...
+                $A = super(...).as_sql(..., **$EXTRA)
+          - pattern: |
+              def $FUNC(self, ...):
+                ...
+                return super(...).as_sql(..., **$EXTRA)
+      - patterns:
+        - pattern-inside: |
+            class $CLASS(django.db.models.Func):
+              ...
+        - pattern-either:
+          - pattern: |
+              def $FUNC(self, ...):
+                ...
+                super(...).as_sql(..., **$EXTRA)
+          - pattern: |
+              def $FUNC(self, ...):
+                ...
+                $A = super(...).as_sql(..., **$EXTRA)
+          - pattern: |
+              def $FUNC(self, ...):
+                ...
+                return super(...).as_sql(..., **$EXTRA)
+  message: |
+    Found custom expression using SQL template.  This could be vulnerable
+    to a SQL injection because keyword arguments are directly interpolated into the
+    redefined template string. Ensure that user data is never passed into 'as_sql(...)'.
+  severity: WARNING
+  languages: [python]
